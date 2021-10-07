@@ -7,7 +7,7 @@
 > Right-click on `Makefile` and click `Run` for hassle-free deployment to ZKE
 
  >What all is done by `make`?
-  * Installs python-pip 
+  * Installs python3-pip 
   * Installs jaeger_client
   * Installs opentracing_instrumentation
   * Executes python program booking-mgr.py
@@ -16,8 +16,8 @@
 ###### _Using RKT Konsole_
 ```bash
 1) Install the jaeger-client
-   sudo apt-get install python-pip
-   pip install jaeger-client
+   sudo apt-get install python3-pip
+   pip3 install jaeger-client
 
 2) Confirm that docker is up and running
    docker ps 
@@ -29,16 +29,16 @@
 
 5) Creating Traces on Jaeger UI
 
-   a) pip install opentracing_instrumentation
+   a) pip3 install opentracing_instrumentation
 
    #Run the python program to look for a movie name and create a booking
-   b) python booking-mgr.py <movie-name>
+   b) python3 booking-mgr.py <movie-name>
 ```   
 
 ###### Sample output:
 
 ```bash
-$ python booking-mgr.py 'abc'      
+$ python3 booking-mgr.py 'abc'      
       
 Initializing Jaeger Tracer with UDP reporter
 Using selector: KqueueSelector
