@@ -25,10 +25,11 @@ build:
 	docker build -t open_tracing:latest .
 
 deploy:
-	kubectl create -f open_tracing.yaml
+	kubectl apply -f open_tracing.yaml
 	
 delete:
 	kubectl delete -f open_tracing.yaml
+	docker rmi -f open_tracing:latest
 
 show_url:
 	@node_ip=$$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}"); \
