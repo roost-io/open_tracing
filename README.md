@@ -1,45 +1,43 @@
-## Python program using Jaeger Open Tracing
+# Python program using Jaeger Open Tracing
 
 ## How to run this application
 
 ###### Using Roost Desktop Engine (RDE)
 
-> Right-click on `Makefile` and click `Run` for hassle-free deployment to ZKE
+> Right-click on `Makefile` and click `Run` for hassle-free deployment to roost cluster
 
- >What all is done by `make`?
-  * Installs python3-pip 
-  * Installs jaeger_client
-  * Installs opentracing_instrumentation
-  * Executes python program booking-mgr.py
-  
+### What all is done by `make all`?
 
-###### _Using RKT Konsole_
+- Buuild the Dockerfile
+- Deploy the yaml
+- Print the URL to access Jaeger UI
+
+<!-- ###### _Using RKT Konsole_ -->
+
 ```bash
-1) Install the jaeger-client
-   sudo apt-get install python3-pip
-   pip3 install jaeger-client
+1) docker build -t open_tracing:latest .
 
-2) Confirm that docker is up and running
-   docker ps 
+2) kubectl apply -f open_tracing.yaml
+```
 
-3) Run the jaegertracing image
-   docker run -d -p6831:6831/udp -p16686:16686 jaegertracing/all-in-one:latest
+To delete the application, run `make delete`. It will delete the deployment and remove the docker image.
 
-4) To access the trace/spans at http://roost-utility:16686/ in any browser.
+#
 
-5) Creating Traces on Jaeger UI
+### Python script is run for 6 input values:
 
-   a) pip3 install opentracing_instrumentation
-
-   #Run the python program to look for a movie name and create a booking
-   b) python3 booking-mgr.py <movie-name>
-```   
+1. A Beautiful Day in the Neighborhood
+2. Dolittle
+3. 1917
+4. As Good As it Gets
+5. Life is Beautiful
+6. The Bridge on the River Kwai
 
 ###### Sample output:
 
 ```bash
-$ python3 booking-mgr.py 'abc'      
-      
+$ python booking-mgr.py 'input_value'
+
 Initializing Jaeger Tracer with UDP reporter
 Using selector: KqueueSelector
 Using sampler ConstSampler(True)
@@ -52,7 +50,9 @@ Reporting span b728a942aaf2ae76:21bf675e0d8009a2:0:1 booking.booking
 Using selector: KqueueSelector
 ```
 
-``` 
+#
+
+```
 Raise any issue or feature request using RDE Help
 Join the Awesome Roost Community https://join.slack.com/t/roostai/shared_invite/zt-ea5mo10y-jDJgXiHn0RihSmucz0UZpw
 ```

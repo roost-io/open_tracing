@@ -1,0 +1,215 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  labels:
+    app: jaeger
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: all-in-one
+    type: "roost-example"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: jaeger
+      app.kubernetes.io/name: jaeger
+      app.kubernetes.io/component: all-in-one
+      type: "roost-example"
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        app.kubernetes.io/name: jaeger
+        app.kubernetes.io/component: all-in-one
+        type: "roost-example"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "16686"
+    spec:
+      containers:
+        - env:
+            - name: COLLECTOR_ZIPKIN_HTTP_PORT
+              value: "9411"
+          image: jaegertracing/all-in-one
+          name: jaeger
+          ports:
+            - containerPort: 5775
+              protocol: UDP
+            - containerPort: 6831
+              protocol: UDP
+            - containerPort: 6832
+              protocol: UDP
+            - containerPort: 5778
+              protocol: TCP
+            - containerPort: 16686
+              protocol: TCP
+            - containerPort: 9411
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: "/"
+              port: 14269
+            initialDelaySeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  labels:
+    app: jaeger
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: query
+    type: "roost-example"
+spec:
+  ports:
+    - name: query-http
+      port: 80
+      protocol: TCP
+      targetPort: 16686
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: all-in-one
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: collector
+    type: "roost-example"
+spec:
+  ports:
+    - name: jaeger-collector-tchannel
+      port: 14267
+      protocol: TCP
+      targetPort: 14267
+    - name: jaeger-collector-http
+      port: 14268
+      protocol: TCP
+      targetPort: 14268
+    - name: jaeger-collector-zipkin
+      port: 9411
+      protocol: TCP
+      targetPort: 9411
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: all-in-one
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-agent
+  labels:
+    app: jaeger
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: agent
+    type: "roost-example"
+spec:
+  ports:
+    - name: agent-zipkin-thrift
+      port: 5775
+      protocol: UDP
+      targetPort: 5775
+    - name: agent-compact
+      port: 6831
+      protocol: UDP
+      targetPort: 6831
+    - name: agent-binary
+      port: 6832
+      protocol: UDP
+      targetPort: 6832
+    - name: agent-configs
+      port: 5778
+      protocol: TCP
+      targetPort: 5778
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: all-in-one
+    type: "roost-example"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  labels:
+    app: jaeger
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: zipkin
+    type: "roost-example"
+spec:
+  ports:
+    - name: jaeger-collector-zipkin
+      port: 9411
+      protocol: TCP
+      targetPort: 9411
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/component: all-in-one
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-tracing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-tracing
+      type: "roost-example"
+  template:
+    metadata:
+      labels:
+        app: open-tracing
+        type: "roost-example"
+    spec:
+      containers:
+        - name: open-tracing
+          image: local-registry:5002/open_tracing:latest
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: prometheus-jmx
+              containerPort: 9099
+          env:
+            - name: JAEGER_SERVICE_NAME
+              value: open-tracing
+            - name: JAEGER_AGENT_HOST
+              value: jaeger-agent
+            # - name: JAEGER_SAMPLER_TYPE
+            #   value: const
+            # - name: JAEGER_SAMPLER_PARAM
+            #   value: "1"
+            # - name: JAEGER_REPORTER_LOG_SPANS
+            #   value: "true"
+            # - name: JAEGER_TAGS
+            #   value: "version=${VERSION}"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    apps: open-tracing
+    type: "roost-example"
+  name: open-tracing
+spec:
+  type: LoadBalancer
+  selector:
+    app: open-tracing
+    type: "roost-example"
+  ports:
+    - name: http
+      port: 8080
