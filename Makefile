@@ -35,4 +35,4 @@ show_url:
 	@node_ip=$$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}"); \
 		svc_port=$$(kubectl get service "jaeger-query" -o jsonpath="{.spec.ports[?(@.targetPort==16686)].nodePort}"); \
 		jaeger_url=http://$$node_ip:$$svc_port; \
-		echo Visit this URl to access Jaeger UI: $$jaeger_url;
+		echo Visit this URL to access Jaeger UI: $$jaeger_url;
